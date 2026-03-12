@@ -256,10 +256,10 @@
       src: `{
   id:   int,
   name: str,
-  meta: map[str, str]
+  meta: <str:str>
 }:
-(1, "alice", {role:admin, region:US}),
-(2, "bob",   {role:viewer, region:EU})`,
+(1, "alice", <role:admin, region:US>),
+(2, "bob",   <role:viewer, region:EU>)`,
     },
   ];
 

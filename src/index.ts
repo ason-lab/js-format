@@ -138,12 +138,21 @@ export function tokenize(src: string): Token[] {
     if (ch === ')') { tokens.push({ kind: 'tuple-close', text: ')' }); i++; continue; }
 
     if (ch === '[') {
-      if (mapTypeDepth > 0) mapTypeDepth++;
       tokens.push({ kind: 'array-open', text: '[' }); i++; continue;
     }
     if (ch === ']') {
-      if (mapTypeDepth > 0) { mapTypeDepth--; }
       tokens.push({ kind: 'array-close', text: ']' }); i++; continue;
+    }
+
+    if (ch === '<') {
+      tokens.push({ kind: 'map', text: '<' });
+      if (schemaDepth > 0) { mapTypeDepth++; expectField = false; expectType = true; }
+      i++; continue;
+    }
+    if (ch === '>') {
+      tokens.push({ kind: 'map', text: '>' });
+      if (schemaDepth > 0 && mapTypeDepth > 0) { mapTypeDepth--; }
+      i++; continue;
     }
 
     if (ch === ':') {
@@ -165,15 +174,8 @@ export function tokenize(src: string): Token[] {
 
       let kind: TokenKind;
       if (schemaDepth > 0 && (expectType || mapTypeDepth > 0)) {
-        // Type position inside schema
-        if (word === 'map') {
-          kind = 'map';
-          mapTypeDepth = 1; // next '[' will be part of map[K,V]
-          expectType = false;
-        } else {
           kind = TYPE_HINTS.has(word) ? 'type' : 'type'; // any word in type pos = type
           expectType = false;
-        }
       } else if (schemaDepth > 0 && expectField) {
         kind = 'field';
         expectField = false;
