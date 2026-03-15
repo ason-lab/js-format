@@ -22,7 +22,8 @@
   "scripts": {
     "build": "tsc --emitDeclarationOnly --outDir dist && node build.mjs",
     "dev":   "node build.mjs && echo 'open examples/demo.html in a browser'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

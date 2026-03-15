@@ -3,6 +3,8 @@
 Syntax highlighter for **ASON** (Array-Schema Object Notation).  
 Zero dependencies · Works in browsers, Node.js, Deno, Bun · Framework-agnostic.
 
+It follows the current ASON syntax: field hints use `@`, complex fields keep `@{...}` / `@[...]`, and legacy map syntax is not highlighted as a supported construct.
+
 ---
 
 ## Installation
@@ -33,7 +35,7 @@ Or grab the pre-built files directly from `dist/`:
 
 <script src="ason-format.min.js"></script>
 <script>
-  const src = `{name:str, age:int}:(Alice, 30)`;
+  const src = `{name@str, age@int}:(Alice, 30)`;
   document.getElementById('output').innerHTML = AsonFormat.highlight(src);
 </script>
 ```
@@ -44,7 +46,7 @@ Or grab the pre-built files directly from `dist/`:
 import { highlight } from 'ason-format';
 import 'ason-format/css';          // or import the CSS file from dist/
 
-const src = `{name:str, age:int}:(Alice, 30)`;
+const src = `{name@str, age@int}:(Alice, 30)`;
 document.getElementById('output').innerHTML = highlight(src);
 ```
 
@@ -52,7 +54,7 @@ document.getElementById('output').innerHTML = highlight(src);
 
 ```js
 const { highlight } = require('ason-format');
-const html = highlight(`{id:int, name:str}:(1, "Alice")`);
+const html = highlight(`{id@int, name@str}:(1, "Alice")`);
 console.log(html); // <code class="ason-highlight">…</code>
 ```
 
@@ -109,12 +111,12 @@ interface Token {
 ```js
 import { tokenize } from 'ason-format';
 
-const tokens = tokenize(`{name:str}:(Alice)`);
+const tokens = tokenize(`{name@str}:(Alice)`);
 console.log(tokens);
 // [
 //   { kind: 'schema-open',  text: '{' },
 //   { kind: 'field',        text: 'name' },
-//   { kind: 'colon',        text: ':' },
+//   { kind: 'at',           text: '@' },
 //   { kind: 'type',         text: 'str' },
 //   { kind: 'schema-close', text: '}' },
 //   { kind: 'colon',        text: ':' },
@@ -134,7 +136,6 @@ Each token receives a CSS class `ason-<kind>`:
 |---|---|---|
 | `field` | `ason-field` | Field name inside a schema |
 | `type` | `ason-type` | Type annotation (`int` `str` `float` `bool` …) |
-| `map` | `ason-map` | `map` keyword |
 | `string` | `ason-string` | Quoted string `"…"` |
 | `number` | `ason-number` | Integer, float, or date (`2025-06-24`) |
 | `bool` | `ason-bool` | `true` / `false` |
@@ -146,6 +147,7 @@ Each token receives a CSS class `ason-<kind>`:
 | `tuple-close` | `ason-tuple-close` | `)` |
 | `array-open` | `ason-array-open` | `[` |
 | `array-close` | `ason-array-close` | `]` |
+| `at` | `ason-at` | `@` |
 | `colon` | `ason-colon` | `:` |
 | `comma` | `ason-comma` | `,` |
 
@@ -196,6 +198,13 @@ Override any color without touching the source:
   background: #1e1e2e;
   color: #cdd6f4;
 }
+```
+
+The built-in highlighter expects current ASON forms such as:
+
+```ason
+{profile@{host@str,port@int}, tags@[str]}:
+((127.0.0.1,8080), [blue, fast])
 ```
 
 ---
@@ -261,6 +270,7 @@ cd tools/ason-format
 
 npm install
 npm run build   # produces dist/
+npm test        # build + node --test
 ```
 
 Open `examples/demo.html` (served via any static file server) to see the

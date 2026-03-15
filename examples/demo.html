@@ -192,7 +192,7 @@
   const EXAMPLES = [
     {
       name: 'Simple',
-      src: `{id:int, name:str, active:bool}:
+      src: `{id@int, name@str, active@bool}:
 (1, "Alice Chen", true),
 (2, "Bob Smith", false),
 (3, "Carol Wu",  true)`,
@@ -200,30 +200,29 @@
     {
       name: 'Array schema',
       src: `[{
-  id:int,
-  name:str,
-  position:str
-}]:(
+  id@str,
+  name@str,
+  position@str
+}]:
   (E001, "Alice Chen", "Software Engineer"),
   (E002, "Bob Smith",  "Marketing Lead"),
-  (E003, "Carol Wu",   "Product Designer")
-)`,
+  (E003, "Carol Wu",   "Product Designer")`,
     },
     {
       name: 'Nested',
       src: `[{
-  employee:{
-    id:str,
-    name:str,
-    department:{id:str, name:str},
-    projects:[{
-      id:str,
-      title:str,
-      startDate:str,
-      done:bool
+  employee@{
+    id@str,
+    name@str,
+    department@{id@str, name@str},
+    projects@[{ 
+      id@str,
+      title@str,
+      startDate@str,
+      done@bool
     }]
   }
-}]:(
+}]:
   (
     (E001, "Alice Chen", (D01, Engineering), [
       (P001, "Auth Service",    2025-01-10, true),
@@ -235,16 +234,16 @@
       (P003, "Campaign Portal", 2025-02-05, true)
     ])
   )
-)`,
+`,
     },
     {
       name: 'With comments',
       src: `/* Employee records — exported 2025-06-24 */
 {
-  id:     int,
-  name:   str,
-  salary: float,
-  active: bool
+  id@int,
+  name@str,
+  salary@float,
+  active@bool
 }:
 (101, "Alice", 95000.00, true),
 (102, "Bob",   82500.50, false),
@@ -252,14 +251,14 @@
 (103, "Carol", 78000.00, false)`,
     },
     {
-      name: 'Map type',
+      name: 'Entry list',
       src: `{
-  id:   int,
-  name: str,
-  meta: <str:str>
+  id@int,
+  name@str,
+  meta@[{key@str,value@str}]
 }:
-(1, "alice", <role:admin, region:US>),
-(2, "bob",   <role:viewer, region:EU>)`,
+(1, "alice", [(role,admin), (region,US)]),
+(2, "bob",   [(role,viewer), (region,EU)])`,
     },
   ];
 
