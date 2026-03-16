@@ -9,6 +9,14 @@ test('tokenize typed schema uses @ marker', () => {
   assert.equal(tokens.filter(t => t.kind === 'colon').length, 1);
 });
 
+test('only current scalar type names are highlighted as types', () => {
+  const tokens = tokenize('{name@str,age@integer,score@double,flag@boolean}:(Alice,30,9.5,true)');
+  assert.ok(tokens.some(t => t.kind === 'type' && t.text === 'str'));
+  assert.ok(tokens.some(t => t.kind === 'error' && t.text === 'integer'));
+  assert.ok(tokens.some(t => t.kind === 'error' && t.text === 'double'));
+  assert.ok(tokens.some(t => t.kind === 'error' && t.text === 'boolean'));
+});
+
 test('tokenize nested structural markers in untyped schema', () => {
   const tokens = tokenize('{profile@{host,port},tags@[],members@[{id,role}]}:((api,8080),[blue],[ (1,owner) ])');
   assert.ok(tokens.some(t => t.kind === 'at'));
@@ -22,7 +30,7 @@ test('quoted field names are highlighted as fields in schema', () => {
   assert.equal(tokens[1].text, '"a.b"');
 });
 
-test('legacy map syntax is not tokenized as map keyword', () => {
+test('entry-list schema is tokenized without any legacy map token path', () => {
   const tokens = tokenize('{attrs@[{key@str,value@str}]}:([(role,admin)])');
   assert.equal(tokens.some(t => t.kind === 'error' && t.text === '<'), false);
   assert.equal(tokens.some(t => t.kind === 'field' && t.text === 'attrs'), true);
@@ -32,4 +40,15 @@ test('highlight emits ason-at and never emits ason-map', () => {
   const html = highlight('{name@str,tags@[str]}:(Alice,[blue])');
   assert.match(html, /ason-at/);
   assert.doesNotMatch(html, /ason-map/);
+});
+
+test('single schema with multiple top-level tuples marks the extra tuple as error', () => {
+  const tokens = tokenize('{id@int,name@str}:(101,Alice),(102,Bob)');
+  const errorTexts = tokens.filter(t => t.kind === 'error').map(t => t.text);
+  assert.deepEqual(errorTexts, [',', '(']);
+});
+
+test('array schema keeps multiple top-level tuples valid', () => {
+  const tokens = tokenize('[{id@int,name@str}]:(101,Alice),(102,Bob)');
+  assert.equal(tokens.some(t => t.kind === 'error' && (t.text === ',' || t.text === '(')), false);
 });

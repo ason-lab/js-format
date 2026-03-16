@@ -6,10 +6,10 @@
   "type": "module",
   "main": "./dist/ason-format.cjs",
   "module": "./dist/ason-format.js",
-  "types": "./dist/ason-format.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types":   "./dist/ason-format.d.ts",
+      "types":   "./dist/index.d.ts",
       "import":  "./dist/ason-format.js",
       "require": "./dist/ason-format.cjs"
     },

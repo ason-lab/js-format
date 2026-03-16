@@ -35,10 +35,10 @@ export interface Token {
 }
 
 const TYPE_HINTS = new Set([
-  'int', 'integer', 'uint',
-  'float', 'double',
-  'str', 'string',
-  'bool', 'boolean',
+  'int',
+  'float',
+  'str',
+  'bool',
 ]);
 
 const IS_IDENT = (c: string) => /[a-zA-Z0-9_+\-]/.test(c);
@@ -54,8 +54,16 @@ export function tokenize(src: string): Token[] {
   let i = 0;
 
   let schemaDepth = 0;
+  let tupleDepth = 0;
+  let arrayDepth = 0;
   let expectField = false;
   let expectType = false;
+  let rootSchemaKind: 'single' | 'array' | null = null;
+  let rootBodyStarted = false;
+  let rootTopLevelTupleCount = 0;
+
+  const isRootBodyTopLevel = () =>
+    rootBodyStarted && schemaDepth === 0 && tupleDepth === 0 && arrayDepth === 0;
 
   while (i < src.length) {
     const ch = src[i]!;
@@ -111,6 +119,9 @@ export function tokenize(src: string): Token[] {
     }
 
     if (ch === '{') {
+      if (!rootBodyStarted && rootSchemaKind === null && schemaDepth === 0 && tupleDepth === 0 && arrayDepth === 0) {
+        rootSchemaKind = 'single';
+      }
       schemaDepth++;
       expectField = true;
       expectType = false;
@@ -126,10 +137,36 @@ export function tokenize(src: string): Token[] {
       i++;
       continue;
     }
-    if (ch === '(') { tokens.push({ kind: 'tuple-open', text: '(' }); i++; continue; }
-    if (ch === ')') { tokens.push({ kind: 'tuple-close', text: ')' }); i++; continue; }
-    if (ch === '[') { tokens.push({ kind: 'array-open', text: '[' }); i++; continue; }
-    if (ch === ']') { tokens.push({ kind: 'array-close', text: ']' }); i++; continue; }
+    if (ch === '(') {
+      const extraTopLevelTuple =
+        rootSchemaKind === 'single' && isRootBodyTopLevel() && rootTopLevelTupleCount > 0;
+      if (rootSchemaKind === 'single' && isRootBodyTopLevel()) rootTopLevelTupleCount++;
+      tupleDepth++;
+      tokens.push({ kind: extraTopLevelTuple ? 'error' : 'tuple-open', text: '(' });
+      i++;
+      continue;
+    }
+    if (ch === ')') {
+      tupleDepth = Math.max(0, tupleDepth - 1);
+      tokens.push({ kind: 'tuple-close', text: ')' });
+      i++;
+      continue;
+    }
+    if (ch === '[') {
+      if (!rootBodyStarted && rootSchemaKind === null && schemaDepth === 0 && tupleDepth === 0 && arrayDepth === 0) {
+        rootSchemaKind = 'array';
+      }
+      arrayDepth++;
+      tokens.push({ kind: 'array-open', text: '[' });
+      i++;
+      continue;
+    }
+    if (ch === ']') {
+      arrayDepth = Math.max(0, arrayDepth - 1);
+      tokens.push({ kind: 'array-close', text: ']' });
+      i++;
+      continue;
+    }
 
     if (ch === '@') {
       expectType = schemaDepth > 0;
@@ -140,17 +177,23 @@ export function tokenize(src: string): Token[] {
     }
 
     if (ch === ':') {
+      if (!rootBodyStarted && rootSchemaKind !== null && schemaDepth === 0 && tupleDepth === 0 && arrayDepth === 0) {
+        rootBodyStarted = true;
+        rootTopLevelTupleCount = 0;
+      }
       tokens.push({ kind: 'colon', text: ':' });
       i++;
       continue;
     }
 
     if (ch === ',') {
+      const extraTopLevelSeparator =
+        rootSchemaKind === 'single' && isRootBodyTopLevel() && rootTopLevelTupleCount > 0;
       if (schemaDepth > 0) {
         expectField = true;
         expectType = false;
       }
-      tokens.push({ kind: 'comma', text: ',' });
+      tokens.push({ kind: extraTopLevelSeparator ? 'error' : 'comma', text: ',' });
       i++;
       continue;
     }
@@ -162,7 +205,7 @@ export function tokenize(src: string): Token[] {
 
       let kind: TokenKind;
       if (schemaDepth > 0 && expectType) {
-        kind = TYPE_HINTS.has(word) ? 'type' : 'type';
+        kind = TYPE_HINTS.has(word) ? 'type' : 'error';
         expectType = false;
       } else if (schemaDepth > 0 && expectField) {
         kind = 'field';

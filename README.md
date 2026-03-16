@@ -3,7 +3,7 @@
 Syntax highlighter for **ASON** (Array-Schema Object Notation).  
 Zero dependencies · Works in browsers, Node.js, Deno, Bun · Framework-agnostic.
 
-It follows the current ASON syntax: field hints use `@`, complex fields keep `@{...}` / `@[...]`, and legacy map syntax is not highlighted as a supported construct.
+It follows the current ASON syntax: field hints use `@`, complex fields keep `@{...}` / `@[...]`, and keyed collections are written as entry lists such as `[{key@str,value@str}]`.
 
 ---
 
@@ -135,7 +135,7 @@ Each token receives a CSS class `ason-<kind>`:
 | Kind | CSS class | Description |
 |---|---|---|
 | `field` | `ason-field` | Field name inside a schema |
-| `type` | `ason-type` | Type annotation (`int` `str` `float` `bool` …) |
+| `type` | `ason-type` | Type annotation (`int` `str` `float` `bool`) |
 | `string` | `ason-string` | Quoted string `"…"` |
 | `number` | `ason-number` | Integer, float, or date (`2025-06-24`) |
 | `bool` | `ason-bool` | `true` / `false` |
@@ -207,6 +207,13 @@ The built-in highlighter expects current ASON forms such as:
 ((127.0.0.1,8080), [blue, fast])
 ```
 
+Keyed collections follow the same schema style:
+
+```ason
+{attrs@[{key@str,value@str}]}:
+([(role,admin), (tier,gold)])
+```
+
 ---
 
 ## Framework examples
@@ -266,7 +273,7 @@ const html  = computed(() => highlight(props.src));
 
 ```bash
 git clone <repo>
-cd tools/ason-format
+cd js-format
 
 npm install
 npm run build   # produces dist/
