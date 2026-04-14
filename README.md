@@ -1,26 +1,26 @@
-# ason-format
+# asun-format
 
-Syntax highlighter for **ASON** (Array-Schema Object Notation).  
+Syntax highlighter for **ASUN** (Array-Schema Unified Notation).  
 Zero dependencies · Works in browsers, Node.js, Deno, Bun · Framework-agnostic.
 
-It follows the current ASON syntax: field hints use `@`, complex fields keep `@{...}` / `@[...]`, and keyed collections are written as entry lists such as `[{key@str,value@str}]`.
+It follows the current ASUN syntax: field hints use `@`, complex fields keep `@{...}` / `@[...]`, and keyed collections are written as entry lists such as `[{key@str,value@str}]`.
 
 ---
 
 ## Installation
 
 ```bash
-npm install ason-format
+npm install asun-format
 ```
 
 Or grab the pre-built files directly from `dist/`:
 
-| File | Format | Use case |
-|---|---|---|
-| `ason-format.js` | ESM | Bundlers (Vite, webpack, Rollup…) |
-| `ason-format.cjs` | CJS | Node.js `require()` |
-| `ason-format.min.js` | IIFE `AsonFormat.*` | `<script>` tag / CDN |
-| `ason-format.css` | CSS | Styles for all four built-in themes |
+| File                 | Format              | Use case                            |
+| -------------------- | ------------------- | ----------------------------------- |
+| `asun-format.js`     | ESM                 | Bundlers (Vite, webpack, Rollup…)   |
+| `asun-format.cjs`    | CJS                 | Node.js `require()`                 |
+| `asun-format.min.js` | IIFE `AsunFormat.*` | `<script>` tag / CDN                |
+| `asun-format.css`    | CSS                 | Styles for all four built-in themes |
 
 ---
 
@@ -29,33 +29,33 @@ Or grab the pre-built files directly from `dist/`:
 ### Via `<script>` tag (no build step)
 
 ```html
-<link rel="stylesheet" href="ason-format.css">
+<link rel="stylesheet" href="asun-format.css" />
 
 <pre><code id="output"></code></pre>
 
-<script src="ason-format.min.js"></script>
+<script src="asun-format.min.js"></script>
 <script>
   const src = `{name@str, age@int}:(Alice, 30)`;
-  document.getElementById('output').innerHTML = AsonFormat.highlight(src);
+  document.getElementById("output").innerHTML = AsunFormat.highlight(src);
 </script>
 ```
 
 ### ESM / bundler
 
 ```js
-import { highlight } from 'ason-format';
-import 'ason-format/css';          // or import the CSS file from dist/
+import { highlight } from "asun-format";
+import "asun-format/css"; // or import the CSS file from dist/
 
 const src = `{name@str, age@int}:(Alice, 30)`;
-document.getElementById('output').innerHTML = highlight(src);
+document.getElementById("output").innerHTML = highlight(src);
 ```
 
 ### Node.js (CJS)
 
 ```js
-const { highlight } = require('ason-format');
+const { highlight } = require("asun-format");
 const html = highlight(`{id@int, name@str}:(1, "Alice")`);
-console.log(html); // <code class="ason-highlight">…</code>
+console.log(html); // <code class="asun-highlight">…</code>
 ```
 
 ---
@@ -64,7 +64,7 @@ console.log(html); // <code class="ason-highlight">…</code>
 
 ### `highlight(src, options?)`
 
-Converts ASON source text to an HTML string with `<span class="ason-*">` tokens.
+Converts ASUN source text to an HTML string with `<span class="asun-*">` tokens.
 
 ```ts
 function highlight(src: string, options?: HighlightOptions): string;
@@ -72,7 +72,7 @@ function highlight(src: string, options?: HighlightOptions): string;
 interface HighlightOptions {
   /** Wrapper HTML tag. Default: 'code' */
   tag?: string;
-  /** CSS class(es) on the wrapper. Default: 'ason-highlight' */
+  /** CSS class(es) on the wrapper. Default: 'asun-highlight' */
   class?: string;
 }
 ```
@@ -84,10 +84,10 @@ interface HighlightOptions {
 highlight(src);
 
 // Light theme
-highlight(src, { class: 'ason-highlight ason-light' });
+highlight(src, { class: "asun-highlight asun-light" });
 
 // Wrap in <pre> instead of <code>
-highlight(src, { tag: 'pre' });
+highlight(src, { tag: "pre" });
 ```
 
 ---
@@ -109,7 +109,7 @@ interface Token {
 **Example:**
 
 ```js
-import { tokenize } from 'ason-format';
+import { tokenize } from "asun-format";
 
 const tokens = tokenize(`{name@str}:(Alice)`);
 console.log(tokens);
@@ -130,52 +130,52 @@ console.log(tokens);
 
 ## Token kinds
 
-Each token receives a CSS class `ason-<kind>`:
+Each token receives a CSS class `asun-<kind>`:
 
-| Kind | CSS class | Description |
-|---|---|---|
-| `field` | `ason-field` | Field name inside a schema |
-| `type` | `ason-type` | Type annotation (`int` `str` `float` `bool`) |
-| `string` | `ason-string` | Quoted string `"…"` |
-| `number` | `ason-number` | Integer, float, or date (`2025-06-24`) |
-| `bool` | `ason-bool` | `true` / `false` |
-| `value` | `ason-value` | Unquoted plain data value |
-| `comment` | `ason-comment` | Block comment `/* … */` |
-| `schema-open` | `ason-schema-open` | `{` |
-| `schema-close` | `ason-schema-close` | `}` |
-| `tuple-open` | `ason-tuple-open` | `(` |
-| `tuple-close` | `ason-tuple-close` | `)` |
-| `array-open` | `ason-array-open` | `[` |
-| `array-close` | `ason-array-close` | `]` |
-| `at` | `ason-at` | `@` |
-| `colon` | `ason-colon` | `:` |
-| `comma` | `ason-comma` | `,` |
+| Kind           | CSS class           | Description                                  |
+| -------------- | ------------------- | -------------------------------------------- |
+| `field`        | `asun-field`        | Field name inside a schema                   |
+| `type`         | `asun-type`         | Type annotation (`int` `str` `float` `bool`) |
+| `string`       | `asun-string`       | Quoted string `"…"`                          |
+| `number`       | `asun-number`       | Integer, float, or date (`2025-06-24`)       |
+| `bool`         | `asun-bool`         | `true` / `false`                             |
+| `value`        | `asun-value`        | Unquoted plain data value                    |
+| `comment`      | `asun-comment`      | Block comment `/* … */`                      |
+| `schema-open`  | `asun-schema-open`  | `{`                                          |
+| `schema-close` | `asun-schema-close` | `}`                                          |
+| `tuple-open`   | `asun-tuple-open`   | `(`                                          |
+| `tuple-close`  | `asun-tuple-close`  | `)`                                          |
+| `array-open`   | `asun-array-open`   | `[`                                          |
+| `array-close`  | `asun-array-close`  | `]`                                          |
+| `at`           | `asun-at`           | `@`                                          |
+| `colon`        | `asun-colon`        | `:`                                          |
+| `comma`        | `asun-comma`        | `,`                                          |
 
 ---
 
 ## Themes
 
-Include `ason-format.css` once, then add the appropriate class to the wrapper:
+Include `asun-format.css` once, then add the appropriate class to the wrapper:
 
-| Class | Theme |
-|---|---|
-| `ason-highlight` | Dark (default — One Dark-inspired) |
-| `ason-highlight ason-light` | Light (One Light) |
-| `ason-highlight ason-github` | GitHub |
-| `ason-highlight ason-tokyo` | Tokyo Night |
+| Class                        | Theme                              |
+| ---------------------------- | ---------------------------------- |
+| `asun-highlight`             | Dark (default — One Dark-inspired) |
+| `asun-highlight asun-light`  | Light (One Light)                  |
+| `asun-highlight asun-github` | GitHub                             |
+| `asun-highlight asun-tokyo`  | Tokyo Night                        |
 
 ```html
 <!-- Dark (default) -->
-<code class="ason-highlight">…</code>
+<code class="asun-highlight">…</code>
 
 <!-- Light -->
-<code class="ason-highlight ason-light">…</code>
+<code class="asun-highlight asun-light">…</code>
 
 <!-- GitHub -->
-<code class="ason-highlight ason-github">…</code>
+<code class="asun-highlight asun-github">…</code>
 
 <!-- Tokyo Night -->
-<code class="ason-highlight ason-tokyo">…</code>
+<code class="asun-highlight asun-tokyo">…</code>
 ```
 
 ---
@@ -185,31 +185,31 @@ Include `ason-format.css` once, then add the appropriate class to the wrapper:
 Override any color without touching the source:
 
 ```css
-.ason-highlight {
-  --ason-field:   hotpink;
-  --ason-type:    #00bcd4;
-  --ason-string:  #aed581;
-  --ason-number:  #ffb74d;
-  --ason-bool:    #ce93d8;
-  --ason-value:   #e0e0e0;
-  --ason-comment: #666;
-  --ason-punct:   #90caf9;
-  --ason-punct-dim: rgba(144, 202, 249, 0.5);
+.asun-highlight {
+  --asun-field: hotpink;
+  --asun-type: #00bcd4;
+  --asun-string: #aed581;
+  --asun-number: #ffb74d;
+  --asun-bool: #ce93d8;
+  --asun-value: #e0e0e0;
+  --asun-comment: #666;
+  --asun-punct: #90caf9;
+  --asun-punct-dim: rgba(144, 202, 249, 0.5);
   background: #1e1e2e;
   color: #cdd6f4;
 }
 ```
 
-The built-in highlighter expects current ASON forms such as:
+The built-in highlighter expects current ASUN forms such as:
 
-```ason
+```asun
 {profile@{host@str,port@int}, tags@[str]}:
 ((127.0.0.1,8080), [blue, fast])
 ```
 
 Keyed collections follow the same schema style:
 
-```ason
+```asun
 {attrs@[{key@str,value@str}]}:
 ([(role,admin), (tier,gold)])
 ```
@@ -221,14 +221,14 @@ Keyed collections follow the same schema style:
 ### React
 
 ```tsx
-import { highlight } from 'ason-format';
-import 'ason-format/css';
+import { highlight } from "asun-format";
+import "asun-format/css";
 
-function AsonBlock({ src }: { src: string }) {
+function AsunBlock({ src }: { src: string }) {
   return (
     <pre>
       <code
-        className="ason-highlight"
+        className="asun-highlight"
         dangerouslySetInnerHTML={{ __html: highlight(src) }}
       />
     </pre>
@@ -240,16 +240,16 @@ function AsonBlock({ src }: { src: string }) {
 
 ```vue
 <template>
-  <pre><code class="ason-highlight" v-html="html" /></pre>
+  <pre><code class="asun-highlight" v-html="html" /></pre>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { highlight } from 'ason-format';
-import 'ason-format/css';
+import { computed } from "vue";
+import { highlight } from "asun-format";
+import "asun-format/css";
 
 const props = defineProps<{ src: string }>();
-const html  = computed(() => highlight(props.src));
+const html = computed(() => highlight(props.src));
 </script>
 ```
 
@@ -257,14 +257,14 @@ const html  = computed(() => highlight(props.src));
 
 ```svelte
 <script lang="ts">
-  import { highlight } from 'ason-format';
-  import 'ason-format/css';
+  import { highlight } from 'asun-format';
+  import 'asun-format/css';
 
   export let src: string;
   $: html = highlight(src);
 </script>
 
-<pre><code class="ason-highlight">{@html html}</code></pre>
+<pre><code class="asun-highlight">{@html html}</code></pre>
 ```
 
 ---

@@ -1,4 +1,4 @@
-// build.mjs — esbuild bundler for ason-format
+// build.mjs — esbuild bundler for asun-format
 import * as esbuild from 'esbuild';
 import { cpSync, mkdirSync } from 'fs';
 
@@ -10,7 +10,7 @@ await esbuild.build({
   bundle: true,
   platform: 'neutral',
   format: 'esm',
-  outfile: 'dist/ason-format.js',
+  outfile: 'dist/asun-format.js',
   minify: false,
 });
 
@@ -20,7 +20,7 @@ await esbuild.build({
   bundle: true,
   platform: 'node',
   format: 'cjs',
-  outfile: 'dist/ason-format.cjs',
+  outfile: 'dist/asun-format.cjs',
   minify: false,
 });
 
@@ -30,12 +30,12 @@ await esbuild.build({
   bundle: true,
   platform: 'browser',
   format: 'iife',
-  globalName: 'AsonFormat',
-  outfile: 'dist/ason-format.min.js',
+  globalName: 'AsunFormat',
+  outfile: 'dist/asun-format.min.js',
   minify: true,
 });
 
 // Copy CSS
-cpSync('src/ason-format.css', 'dist/ason-format.css');
+cpSync('src/asun-format.css', 'dist/asun-format.css');
 
-console.log('✓ dist/ason-format.js  dist/ason-format.cjs  dist/ason-format.min.js  dist/ason-format.css');
+console.log('✓ dist/asun-format.js  dist/asun-format.cjs  dist/asun-format.min.js  dist/asun-format.css');

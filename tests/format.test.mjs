@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { highlight, tokenize } from '../dist/ason-format.js';
+import { highlight, tokenize } from '../dist/asun-format.js';
 
 test('tokenize typed schema uses @ marker', () => {
   const tokens = tokenize('{name@str,age@int}:(Alice,30)');
@@ -36,10 +36,10 @@ test('entry-list schema is tokenized without any legacy map token path', () => {
   assert.equal(tokens.some(t => t.kind === 'field' && t.text === 'attrs'), true);
 });
 
-test('highlight emits ason-at and never emits ason-map', () => {
+test('highlight emits asun-at and never emits asun-map', () => {
   const html = highlight('{name@str,tags@[str]}:(Alice,[blue])');
-  assert.match(html, /ason-at/);
-  assert.doesNotMatch(html, /ason-map/);
+  assert.match(html, /asun-at/);
+  assert.doesNotMatch(html, /asun-map/);
 });
 
 test('single schema with multiple top-level tuples marks the extra tuple as error', () => {

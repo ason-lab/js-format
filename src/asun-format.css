@@ -1,0 +1,125 @@
+/* ======================================================================
+   asun-format.css — default themes for asun-format syntax highlighter
+   ======================================================================
+
+   Usage:
+     <link rel="stylesheet" href="asun-format.css">
+     <pre><code id="output"></code></pre>
+     <script>document.getElementById('output').innerHTML = AsunFormat.highlight(src);</script>
+
+   Dark theme  → class="asun-highlight"
+   Light theme → class="asun-highlight asun-light"
+
+   Override any color with CSS custom properties:
+     .asun-highlight { --asun-field: hotpink; }
+   ====================================================================== */
+
+/* ── Base container ──────────────────────────────────────────────────────── */
+.asun-highlight {
+  display: block;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas',
+               'SF Mono', 'Menlo', 'Monaco', monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  padding: 1.125em 1.375em;
+  overflow-x: auto;
+  white-space: pre;
+  border-radius: 0.5em;
+  tab-size: 2;
+
+  /* ── Dark theme (default: One Dark-inspired) ─────── */
+  background:              #282c34;
+  color:                   #abb2bf;
+
+  /* Semantic color palette (override any via CSS custom properties) */
+  --asun-field:            #e06c75;   /* field names          → red    */
+  --asun-type:             #56b6c2;   /* int str float bool … → cyan   */
+  --asun-string:           #98c379;   /* "quoted strings"     → green  */
+  --asun-number:           #d19a66;   /* numbers / dates      → orange */
+  --asun-bool:             #c678dd;   /* true / false         → purple */
+  --asun-value:            #abb2bf;   /* plain data values    → grey   */
+  --asun-comment:          #5c6370;   /* /* comments */      → dim    */
+  --asun-punct:            #61afef;   /* { } ( ) [ ] : ,     → blue   */
+  --asun-punct-dim:        rgba(97, 175, 239, 0.55); /* , separator   */
+}
+
+/* ── Punctuation ─────────────────────────────────────────────────────────── */
+.asun-highlight .asun-schema-open,
+.asun-highlight .asun-schema-close {
+  color: var(--asun-punct);
+  font-weight: 600;
+}
+.asun-highlight .asun-tuple-open,
+.asun-highlight .asun-tuple-close {
+  color: var(--asun-punct);
+}
+.asun-highlight .asun-array-open,
+.asun-highlight .asun-array-close {
+  color: var(--asun-punct);
+}
+.asun-highlight .asun-colon  { color: var(--asun-punct); }
+.asun-highlight .asun-at     { color: var(--asun-punct); }
+.asun-highlight .asun-comma  { color: var(--asun-punct-dim); }
+
+/* ── Semantic tokens ─────────────────────────────────────────────────────── */
+.asun-highlight .asun-field   { color: var(--asun-field); }
+.asun-highlight .asun-type    { color: var(--asun-type);   font-style: italic; }
+.asun-highlight .asun-string  { color: var(--asun-string); }
+.asun-highlight .asun-number  { color: var(--asun-number); }
+.asun-highlight .asun-bool    { color: var(--asun-bool);   font-weight: 600; }
+.asun-highlight .asun-value   { color: var(--asun-value); }
+.asun-highlight .asun-comment { color: var(--asun-comment); font-style: italic; }
+.asun-highlight .asun-error   {
+  color: #ff5555;
+  text-decoration: underline wavy red;
+}
+
+/* ── Light theme ─────────────────────────────────────────────────────────── */
+/* Apply by adding the class "asun-light" alongside "asun-highlight"         */
+.asun-highlight.asun-light {
+  background:          #fafafa;
+  color:               #383a42;
+
+  --asun-field:        #e45649;
+  --asun-type:         #0184bc;
+  --asun-string:       #50a14f;
+  --asun-number:       #986801;
+  --asun-bool:         #a626a4;
+  --asun-value:        #383a42;
+  --asun-comment:      #9fa0a5;
+  --asun-punct:        #4078f2;
+  --asun-punct-dim:    rgba(64, 120, 242, 0.55);
+}
+
+/* ── GitHub-style light theme ────────────────────────────────────────────── */
+.asun-highlight.asun-github {
+  background:          #f6f8fa;
+  color:               #24292e;
+  border: 1px solid #d0d7de;
+
+  --asun-field:        #d73a49;
+  --asun-type:         #005cc5;
+  --asun-string:       #032f62;
+  --asun-number:       #005cc5;
+  --asun-bool:         #6f42c1;
+  --asun-value:        #24292e;
+  --asun-comment:      #6a737d;
+  --asun-punct:        #24292e;
+  --asun-punct-dim:    rgba(36, 41, 46, 0.45);
+}
+
+/* ── Tokyo Night dark theme ──────────────────────────────────────────────── */
+.asun-highlight.asun-tokyo {
+  background:          #1a1b26;
+  color:               #a9b1d6;
+
+  --asun-field:        #f7768e;
+  --asun-type:         #2ac3de;
+  --asun-string:       #9ece6a;
+  --asun-number:       #ff9e64;
+  --asun-bool:         #bb9af7;
+  --asun-value:        #a9b1d6;
+  --asun-comment:      #565f89;
+  --asun-punct:        #7dcfff;
+  --asun-punct-dim:    rgba(125, 207, 255, 0.45);
+}
