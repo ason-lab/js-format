@@ -33,12 +33,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/asun-lab/js-format.git",
+    "url": "git+https://github.com/asunLab/js-format.git",
     "directory": "js-format"
   },
-  "homepage": "https://github.com/asun-lab/js-format#readme",
+  "homepage": "https://github.com/asunLab/js-format#readme",
   "bugs": {
-    "url": "https://github.com/asun-lab/js-format/issues"
+    "url": "https://github.com/asunLab/js-format/issues"
   },
   "keywords": [
     "asun",
