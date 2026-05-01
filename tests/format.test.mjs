@@ -30,6 +30,21 @@ test('quoted field names are highlighted as fields in schema', () => {
   assert.equal(tokens[1].text, '"a.b"');
 });
 
+test('bare field names follow ABNF letters digits underscore only', () => {
+  const valid = tokenize('{65@int,a_1@str}:(1,ok)');
+  assert.ok(valid.some(t => t.kind === 'field' && t.text === '65'));
+  assert.ok(valid.some(t => t.kind === 'field' && t.text === 'a_1'));
+
+  const invalid = tokenize('{a+b@int,a-b@int,a.b@int}:(1,2,3)');
+  assert.deepEqual(
+    invalid.filter(t => t.kind === 'error').map(t => t.text),
+    ['a+b', 'a-b', 'a.b'],
+  );
+
+  const quoted = tokenize('{"a+b"@int,"a-b"@int,"a.b"@int}:(1,2,3)');
+  assert.equal(quoted.some(t => t.kind === 'error'), false);
+});
+
 test('entry-list schema is tokenized without any legacy map token path', () => {
   const tokens = tokenize('{attrs@[{key@str,value@str}]}:([(role,admin)])');
   assert.equal(tokens.some(t => t.kind === 'error' && t.text === '<'), false);
@@ -51,4 +66,34 @@ test('single schema with multiple top-level tuples marks the extra tuple as erro
 test('array schema keeps multiple top-level tuples valid', () => {
   const tokens = tokenize('[{id@int,name@str}]:(101,Alice),(102,Bob)');
   assert.equal(tokens.some(t => t.kind === 'error' && (t.text === ',' || t.text === '(')), false);
+});
+
+test('numbers follow ABNF and scientific notation', () => {
+  const tokens = tokenize('[0,-7,0.5,-2.5,1e10,1.5e-3,-1.0E+100,.5,5.,+5,1e,1e+,2025-06-24]');
+  const numbers = tokens.filter(t => t.kind === 'number').map(t => t.text);
+  const values = tokens.filter(t => t.kind === 'value').map(t => t.text);
+
+  assert.deepEqual(numbers, ['0', '-7', '0.5', '-2.5', '1e10', '1.5e-3', '-1.0E+100']);
+  assert.deepEqual(values, ['.5', '5.', '+5', '1e', '1e+', '2025-06-24']);
+});
+
+test('plain slash is value text while slash-star is comment', () => {
+  const tokens = tokenize('[path/to/file,/* comment */]');
+  assert.ok(tokens.some(t => t.kind === 'value' && t.text === 'path/to/file'));
+  assert.ok(tokens.some(t => t.kind === 'comment' && t.text === '/* comment */'));
+});
+
+test('quoted escape sequences follow ABNF', () => {
+  const tokens = tokenize('["\\u0041","\\{","\\@","\\/","\\uZZZZ"]');
+  const strings = tokens.filter(t => t.kind === 'string').map(t => t.text);
+  const errors = tokens.filter(t => t.kind === 'error').map(t => t.text);
+
+  assert.deepEqual(strings, ['"\\u0041"', '"\\{"', '"\\@"']);
+  assert.deepEqual(errors, ['"\\/"', '"\\uZZZZ"']);
+});
+
+test('schema optional marker is not a standard base type', () => {
+  const tokens = tokenize('{name@str?,age@int}:(Alice,30)');
+  assert.ok(tokens.some(t => t.kind === 'error' && t.text === 'str?'));
+  assert.ok(tokens.some(t => t.kind === 'type' && t.text === 'int'));
 });

@@ -36,8 +36,10 @@ export interface Token {
 
 const TYPE_HINTS = new Set(["int", "float", "str", "bool"]);
 
-const IS_IDENT = (c: string) => /[a-zA-Z0-9_+\-]/.test(c);
-const IS_IDENT_START = (c: string) => /[a-zA-Z_]/.test(c);
+const IS_BARE_FIELD = (c: string) => /[a-zA-Z0-9_]/.test(c);
+const IS_ALPHA = (c: string) => /[a-zA-Z]/.test(c);
+const NUMBER_RE = /^-?(?:\d+\.\d+(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+|\d+)$/;
+const HEX_RE = /^[0-9A-Fa-f]$/;
 const IS_VALUE_DELIM = (c: string) =>
   c === "," ||
   c === "(" ||
@@ -47,13 +49,93 @@ const IS_VALUE_DELIM = (c: string) =>
   c === "{" ||
   c === "}" ||
   c === '"' ||
-  c === "/" ||
   c === "@" ||
   c === ":" ||
   c === " " ||
   c === "\t" ||
   c === "\r" ||
   c === "\n";
+
+const IS_SCHEMA_TOKEN_DELIM = (c: string) =>
+  c === "," ||
+  c === "}" ||
+  c === "]" ||
+  c === " " ||
+  c === "\t" ||
+  c === "\r" ||
+  c === "\n";
+
+function scanQuoted(src: string, start: number): { end: number; ok: boolean } {
+  let j = start + 1;
+  let ok = true;
+  while (j < src.length) {
+    const c = src[j]!;
+    if (c === '"') return { end: j + 1, ok };
+    if (c === "\n" || c === "\r" || c < " ") ok = false;
+    if (c === "\\") {
+      const e = src[j + 1];
+      if (e === undefined) return { end: src.length, ok: false };
+      if (
+        e === "\\" ||
+        e === '"' ||
+        e === "n" ||
+        e === "t" ||
+        e === "r" ||
+        e === "b" ||
+        e === "f" ||
+        e === "," ||
+        e === "(" ||
+        e === ")" ||
+        e === "[" ||
+        e === "]" ||
+        e === "{" ||
+        e === "}" ||
+        e === ":" ||
+        e === "@"
+      ) {
+        j += 2;
+        continue;
+      }
+      if (e === "u") {
+        const hex = src.slice(j + 2, j + 6);
+        if (hex.length !== 4 || ![...hex].every((h) => HEX_RE.test(h))) {
+          ok = false;
+        }
+        j += Math.min(6, src.length - j);
+        continue;
+      }
+      ok = false;
+      j += 2;
+      continue;
+    }
+    j++;
+  }
+  return { end: src.length, ok: false };
+}
+
+function scanBareField(src: string, start: number): { end: number; ok: boolean } {
+  let j = start;
+  while (j < src.length && !IS_SCHEMA_TOKEN_DELIM(src[j]!) && src[j] !== "@")
+    j++;
+  const text = src.slice(start, j);
+  return { end: j, ok: text.length > 0 && [...text].every(IS_BARE_FIELD) };
+}
+
+function scanSchemaType(src: string, start: number): { end: number; text: string } {
+  let j = start;
+  while (j < src.length && !IS_SCHEMA_TOKEN_DELIM(src[j]!)) j++;
+  return { end: j, text: src.slice(start, j) };
+}
+
+function scanValueLike(src: string, start: number): { end: number; text: string } {
+  let j = start;
+  while (j < src.length) {
+    if (src[j] === "/" && src[j + 1] === "*") break;
+    if (IS_VALUE_DELIM(src[j]!)) break;
+    j++;
+  }
+  return { end: j, text: src.slice(start, j) };
+}
 
 export function tokenize(src: string): Token[] {
   const tokens: Token[] = [];
@@ -106,25 +188,14 @@ export function tokenize(src: string): Token[] {
     }
 
     if (ch === '"') {
-      let j = i + 1;
-      while (j < src.length) {
-        if (src[j] === "\\") {
-          j += 2;
-          continue;
-        }
-        if (src[j] === '"') {
-          j++;
-          break;
-        }
-        j++;
-      }
-      const text = src.slice(i, j);
+      const quoted = scanQuoted(src, i);
+      const text = src.slice(i, quoted.end);
       const kind: TokenKind =
-        schemaDepth > 0 && expectField ? "field" : "string";
+        !quoted.ok ? "error" : schemaDepth > 0 && expectField ? "field" : "string";
       tokens.push({ kind, text });
       if (kind === "field") expectField = false;
       if (expectType) expectType = false;
-      i = j;
+      i = quoted.end;
       continue;
     }
 
@@ -237,26 +308,30 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
-    if (IS_IDENT_START(ch)) {
-      let j = i;
-      while (j < src.length && IS_IDENT(src[j]!)) j++;
-      const word = src.slice(i, j);
+    if (schemaDepth > 0 && expectField) {
+      const field = scanBareField(src, i);
+      const text = src.slice(i, field.end);
+      tokens.push({ kind: field.ok ? "field" : "error", text });
+      expectField = field.ok ? false : expectField;
+      i = field.end;
+      continue;
+    }
 
-      let kind: TokenKind;
-      if (schemaDepth > 0 && expectType) {
-        kind = TYPE_HINTS.has(word) ? "type" : "error";
-        expectType = false;
-      } else if (schemaDepth > 0 && expectField) {
-        kind = "field";
-        expectField = false;
-      } else if (word === "true" || word === "false") {
-        kind = "bool";
-      } else {
-        kind = schemaDepth > 0 ? "field" : "value";
-      }
+    if (schemaDepth > 0 && expectType && (IS_ALPHA(ch) || ch === "?")) {
+      const type = scanSchemaType(src, i);
+      tokens.push({ kind: TYPE_HINTS.has(type.text) ? "type" : "error", text: type.text });
+      expectType = false;
+      i = type.end;
+      continue;
+    }
 
-      tokens.push({ kind, text: word });
-      i = j;
+    if (IS_ALPHA(ch) || ch === "_") {
+      const value = scanValueLike(src, i);
+      const kind: TokenKind =
+        value.text === "true" || value.text === "false" ? "bool" : "value";
+      tokens.push({ kind, text: value.text });
+      if (expectType) expectType = false;
+      i = value.end;
       continue;
     }
 
@@ -267,35 +342,20 @@ export function tokenize(src: string): Token[] {
         src[i + 1]! >= "0" &&
         src[i + 1]! <= "9")
     ) {
-      let j = i;
-      if (src[j] === "-") j++;
-      while (j < src.length && src[j]! >= "0" && src[j]! <= "9") j++;
-      if (
-        j < src.length &&
-        src[j] === "." &&
-        j + 1 < src.length &&
-        src[j + 1]! >= "0" &&
-        src[j + 1]! <= "9"
-      ) {
-        j++;
-        while (j < src.length && src[j]! >= "0" && src[j]! <= "9") j++;
-      }
-      while (
-        j < src.length &&
-        (src[j] === "-" || (src[j]! >= "0" && src[j]! <= "9"))
-      )
-        j++;
-      tokens.push({ kind: "number", text: src.slice(i, j) });
+      const value = scanValueLike(src, i);
+      tokens.push({
+        kind: NUMBER_RE.test(value.text) ? "number" : "value",
+        text: value.text,
+      });
       if (expectType) expectType = false;
-      i = j;
+      i = value.end;
       continue;
     }
 
-    let j = i;
-    while (j < src.length && !IS_VALUE_DELIM(src[j]!)) j++;
-    if (j > i) {
-      tokens.push({ kind: "value", text: src.slice(i, j) });
-      i = j;
+    const value = scanValueLike(src, i);
+    if (value.end > i) {
+      tokens.push({ kind: "value", text: value.text });
+      i = value.end;
       continue;
     }
 
